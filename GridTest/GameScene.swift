@@ -6,12 +6,25 @@
 //  Copyright © 2018 Robert Herrera. All rights reserved.
 //
 
+
+/*
+ * BUGS:
+ * - unable to detect ghost/pacman collision when move skaction taking place
+ * - pacman movement somtimes negates tile detection and will "phase" throught the wall.
+ * - Loss/Win sounds sometimes dont play
+ * TODO:
+ * - need to add collision for "pink" layer of map for pacman
+ * - Power pellets
+ * - "power mode" logic - blue ghosts, logic, ghost scatter mode
+ */
+
 import SpriteKit
 import GameplayKit
 
 // Globals
 fileprivate let SCALE_FACTOR = 0.0325
-fileprivate let VELOCITY = 400
+fileprivate let VELOCITY = 300
+fileprivate let GHOST_SPEED = 80
 fileprivate let MOVEMENT_DURATION = 3
 fileprivate let UP = 2
 fileprivate let DOWN = 3
@@ -245,7 +258,7 @@ class GameScene: SKScene {
             for coordinate in path {
                 Path.addLine(to: (self.grid?.gridPosition(row: coordinate.0, col: coordinate.1))!)
             }
-            let move = SKAction.follow(Path.cgPath, asOffset: false, orientToPath: false, speed: 70)
+            let move = SKAction.follow(Path.cgPath, asOffset: false, orientToPath: false, speed: CGFloat(GHOST_SPEED))
             ghost.run(move)
         }
     }

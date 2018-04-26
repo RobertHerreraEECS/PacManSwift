@@ -32,10 +32,11 @@ class MapManager {
                 let lines = levelString.components(separatedBy: "\n")
                 
                 mrow = lines.count
-                mcol = lines[0].characters.count
+                
+                mcol = lines[0].count
                 mapSize = (mrow, mcol)
                 for (row,line) in Array(lines).enumerated() {
-                    for (column, letter) in line.characters.enumerated() {
+                    for (column, letter) in line.enumerated() {
                         let position = CGPoint(x: column ,y: row)
                         if letter == "0" {
                             let posX = Int(position.x)
