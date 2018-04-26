@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		E11A8509208D3E75001B1AE6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E11A8508208D3E75001B1AE6 /* AppDelegate.swift */; };
-		E11A850B208D3E75001B1AE6 /* GameScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = E11A850A208D3E75001B1AE6 /* GameScene.sks */; };
 		E11A850D208D3E75001B1AE6 /* Actions.sks in Resources */ = {isa = PBXBuildFile; fileRef = E11A850C208D3E75001B1AE6 /* Actions.sks */; };
 		E11A850F208D3E75001B1AE6 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = E11A850E208D3E75001B1AE6 /* GameScene.swift */; };
 		E11A8511208D3E75001B1AE6 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E11A8510208D3E75001B1AE6 /* GameViewController.swift */; };
@@ -17,6 +16,19 @@
 		E11A8519208D3E75001B1AE6 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E11A8517208D3E75001B1AE6 /* LaunchScreen.storyboard */; };
 		E11A8524208D3E75001B1AE6 /* GridTestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E11A8523208D3E75001B1AE6 /* GridTestTests.swift */; };
 		E11A852F208D3E75001B1AE6 /* GridTestUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E11A852E208D3E75001B1AE6 /* GridTestUITests.swift */; };
+		E11A853D208D3E89001B1AE6 /* Grid.swift in Sources */ = {isa = PBXBuildFile; fileRef = E11A853C208D3E89001B1AE6 /* Grid.swift */; };
+		E184FCCD2091A5BD004D45F9 /* GameOverScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = E184FCCC2091A5BD004D45F9 /* GameOverScene.swift */; };
+		E184FCD42091B8DF004D45F9 /* pacman_beginning.wav in Resources */ = {isa = PBXBuildFile; fileRef = E184FCCE2091B8DF004D45F9 /* pacman_beginning.wav */; };
+		E184FCD52091B8DF004D45F9 /* pacman_chomp.wav in Resources */ = {isa = PBXBuildFile; fileRef = E184FCCF2091B8DF004D45F9 /* pacman_chomp.wav */; };
+		E184FCD62091B8DF004D45F9 /* pacman_death.wav in Resources */ = {isa = PBXBuildFile; fileRef = E184FCD02091B8DF004D45F9 /* pacman_death.wav */; };
+		E184FCD72091B8DF004D45F9 /* pacman_eatfruit.wav in Resources */ = {isa = PBXBuildFile; fileRef = E184FCD12091B8DF004D45F9 /* pacman_eatfruit.wav */; };
+		E184FCD82091B8DF004D45F9 /* pacman_eatghost.wav in Resources */ = {isa = PBXBuildFile; fileRef = E184FCD22091B8DF004D45F9 /* pacman_eatghost.wav */; };
+		E184FCD92091B8DF004D45F9 /* pacman_intermission.wav in Resources */ = {isa = PBXBuildFile; fileRef = E184FCD32091B8DF004D45F9 /* pacman_intermission.wav */; };
+		E184FCDB2091BCD5004D45F9 /* VictoryScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = E184FCDA2091BCD5004D45F9 /* VictoryScene.swift */; };
+		E1D6A0F6208D41680012F21B /* map.txt in Resources */ = {isa = PBXBuildFile; fileRef = E1D6A0F5208D41680012F21B /* map.txt */; };
+		E1D6A0F8208D47660012F21B /* BreadthFirstSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1D6A0F7208D47660012F21B /* BreadthFirstSearch.swift */; };
+		E1D6A0FA208D4A4D0012F21B /* Structures.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1D6A0F9208D4A4D0012F21B /* Structures.swift */; };
+		E1D6A0FC208D4DB20012F21B /* MapManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1D6A0FB208D4DB20012F21B /* MapManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,7 +51,6 @@
 /* Begin PBXFileReference section */
 		E11A8505208D3E75001B1AE6 /* GridTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GridTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E11A8508208D3E75001B1AE6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		E11A850A208D3E75001B1AE6 /* GameScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameScene.sks; sourceTree = "<group>"; };
 		E11A850C208D3E75001B1AE6 /* Actions.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = Actions.sks; sourceTree = "<group>"; };
 		E11A850E208D3E75001B1AE6 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		E11A8510208D3E75001B1AE6 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
@@ -53,6 +64,19 @@
 		E11A852A208D3E75001B1AE6 /* GridTestUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GridTestUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E11A852E208D3E75001B1AE6 /* GridTestUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridTestUITests.swift; sourceTree = "<group>"; };
 		E11A8530208D3E75001B1AE6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E11A853C208D3E89001B1AE6 /* Grid.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Grid.swift; path = ../Grid.swift; sourceTree = "<group>"; };
+		E184FCCC2091A5BD004D45F9 /* GameOverScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameOverScene.swift; sourceTree = "<group>"; };
+		E184FCCE2091B8DF004D45F9 /* pacman_beginning.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = pacman_beginning.wav; sourceTree = "<group>"; };
+		E184FCCF2091B8DF004D45F9 /* pacman_chomp.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = pacman_chomp.wav; sourceTree = "<group>"; };
+		E184FCD02091B8DF004D45F9 /* pacman_death.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = pacman_death.wav; sourceTree = "<group>"; };
+		E184FCD12091B8DF004D45F9 /* pacman_eatfruit.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = pacman_eatfruit.wav; sourceTree = "<group>"; };
+		E184FCD22091B8DF004D45F9 /* pacman_eatghost.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = pacman_eatghost.wav; sourceTree = "<group>"; };
+		E184FCD32091B8DF004D45F9 /* pacman_intermission.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = pacman_intermission.wav; sourceTree = "<group>"; };
+		E184FCDA2091BCD5004D45F9 /* VictoryScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VictoryScene.swift; sourceTree = "<group>"; };
+		E1D6A0F5208D41680012F21B /* map.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = map.txt; sourceTree = "<group>"; };
+		E1D6A0F7208D47660012F21B /* BreadthFirstSearch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BreadthFirstSearch.swift; sourceTree = "<group>"; };
+		E1D6A0F9208D4A4D0012F21B /* Structures.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Structures.swift; sourceTree = "<group>"; };
+		E1D6A0FB208D4DB20012F21B /* MapManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MapManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,14 +128,21 @@
 			isa = PBXGroup;
 			children = (
 				E11A8508208D3E75001B1AE6 /* AppDelegate.swift */,
-				E11A850A208D3E75001B1AE6 /* GameScene.sks */,
 				E11A850C208D3E75001B1AE6 /* Actions.sks */,
+				E11A853C208D3E89001B1AE6 /* Grid.swift */,
 				E11A850E208D3E75001B1AE6 /* GameScene.swift */,
+				E184FCCC2091A5BD004D45F9 /* GameOverScene.swift */,
+				E184FCDA2091BCD5004D45F9 /* VictoryScene.swift */,
+				E1D6A0F7208D47660012F21B /* BreadthFirstSearch.swift */,
+				E1D6A0FB208D4DB20012F21B /* MapManager.swift */,
+				E1D6A0F9208D4A4D0012F21B /* Structures.swift */,
 				E11A8510208D3E75001B1AE6 /* GameViewController.swift */,
 				E11A8512208D3E75001B1AE6 /* Main.storyboard */,
 				E11A8515208D3E75001B1AE6 /* Assets.xcassets */,
+				E184FCDC2091BEB6004D45F9 /* Sounds */,
 				E11A8517208D3E75001B1AE6 /* LaunchScreen.storyboard */,
 				E11A851A208D3E75001B1AE6 /* Info.plist */,
+				E1D6A0F5208D41680012F21B /* map.txt */,
 			);
 			path = GridTest;
 			sourceTree = "<group>";
@@ -132,6 +163,19 @@
 				E11A8530208D3E75001B1AE6 /* Info.plist */,
 			);
 			path = GridTestUITests;
+			sourceTree = "<group>";
+		};
+		E184FCDC2091BEB6004D45F9 /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				E184FCCF2091B8DF004D45F9 /* pacman_chomp.wav */,
+				E184FCD02091B8DF004D45F9 /* pacman_death.wav */,
+				E184FCD12091B8DF004D45F9 /* pacman_eatfruit.wav */,
+				E184FCD22091B8DF004D45F9 /* pacman_eatghost.wav */,
+				E184FCD32091B8DF004D45F9 /* pacman_intermission.wav */,
+				E184FCCE2091B8DF004D45F9 /* pacman_beginning.wav */,
+			);
+			name = Sounds;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -202,15 +246,18 @@
 				TargetAttributes = {
 					E11A8504208D3E75001B1AE6 = {
 						CreatedOnToolsVersion = 8.3.3;
+						LastSwiftMigration = 0930;
 						ProvisioningStyle = Automatic;
 					};
 					E11A851E208D3E75001B1AE6 = {
 						CreatedOnToolsVersion = 8.3.3;
+						LastSwiftMigration = 0930;
 						ProvisioningStyle = Automatic;
 						TestTargetID = E11A8504208D3E75001B1AE6;
 					};
 					E11A8529208D3E75001B1AE6 = {
 						CreatedOnToolsVersion = 8.3.3;
+						LastSwiftMigration = 0930;
 						ProvisioningStyle = Automatic;
 						TestTargetID = E11A8504208D3E75001B1AE6;
 					};
@@ -242,8 +289,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				E11A8514208D3E75001B1AE6 /* Main.storyboard in Resources */,
-				E11A850B208D3E75001B1AE6 /* GameScene.sks in Resources */,
+				E184FCD72091B8DF004D45F9 /* pacman_eatfruit.wav in Resources */,
+				E184FCD62091B8DF004D45F9 /* pacman_death.wav in Resources */,
+				E184FCD92091B8DF004D45F9 /* pacman_intermission.wav in Resources */,
+				E184FCD82091B8DF004D45F9 /* pacman_eatghost.wav in Resources */,
+				E184FCD52091B8DF004D45F9 /* pacman_chomp.wav in Resources */,
 				E11A8516208D3E75001B1AE6 /* Assets.xcassets in Resources */,
+				E184FCD42091B8DF004D45F9 /* pacman_beginning.wav in Resources */,
+				E1D6A0F6208D41680012F21B /* map.txt in Resources */,
 				E11A8519208D3E75001B1AE6 /* LaunchScreen.storyboard in Resources */,
 				E11A850D208D3E75001B1AE6 /* Actions.sks in Resources */,
 			);
@@ -271,8 +324,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				E11A850F208D3E75001B1AE6 /* GameScene.swift in Sources */,
+				E1D6A0FA208D4A4D0012F21B /* Structures.swift in Sources */,
+				E184FCDB2091BCD5004D45F9 /* VictoryScene.swift in Sources */,
 				E11A8511208D3E75001B1AE6 /* GameViewController.swift in Sources */,
+				E1D6A0F8208D47660012F21B /* BreadthFirstSearch.swift in Sources */,
+				E1D6A0FC208D4DB20012F21B /* MapManager.swift in Sources */,
 				E11A8509208D3E75001B1AE6 /* AppDelegate.swift in Sources */,
+				E184FCCD2091A5BD004D45F9 /* GameOverScene.swift in Sources */,
+				E11A853D208D3E89001B1AE6 /* Grid.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -430,7 +489,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Robert.audio.GridTest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -442,7 +502,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Robert.audio.GridTest;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};
@@ -455,7 +516,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Robert.audio.GridTestTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GridTest.app/GridTest";
 			};
 			name = Debug;
@@ -469,7 +531,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Robert.audio.GridTestTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GridTest.app/GridTest";
 			};
 			name = Release;
@@ -482,7 +545,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Robert.audio.GridTestUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 				TEST_TARGET_NAME = GridTest;
 			};
 			name = Debug;
@@ -495,7 +559,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Robert.audio.GridTestUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 3.0;
+				SWIFT_SWIFT3_OBJC_INFERENCE = On;
+				SWIFT_VERSION = 4.0;
 				TEST_TARGET_NAME = GridTest;
 			};
 			name = Release;
@@ -519,6 +584,7 @@
 				E11A8535208D3E75001B1AE6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		E11A8536208D3E75001B1AE6 /* Build configuration list for PBXNativeTarget "GridTestTests" */ = {
 			isa = XCConfigurationList;
@@ -527,6 +593,7 @@
 				E11A8538208D3E75001B1AE6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		E11A8539208D3E75001B1AE6 /* Build configuration list for PBXNativeTarget "GridTestUITests" */ = {
 			isa = XCConfigurationList;
@@ -535,6 +602,7 @@
 				E11A853B208D3E75001B1AE6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
