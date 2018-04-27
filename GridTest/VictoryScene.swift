@@ -14,7 +14,6 @@ import SpriteKit
 class VictoryScene: SKScene {
     
     var notificationLabel = SKLabelNode(text: "You Win!\n Touch anywhere to restart.")
-    deinit{print("Gameover deinited")}
     override init(size: CGSize) {
         super.init(size: size)
         

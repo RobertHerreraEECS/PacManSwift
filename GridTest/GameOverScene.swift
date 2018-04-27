@@ -13,7 +13,6 @@ import SpriteKit
 class GameOverScene: SKScene {
     
     var notificationLabel = SKLabelNode(text: "You Lose!\n Touch anywhere to restart.")
-    deinit{print("Gameover deinited")}
     override init(size: CGSize) {
         super.init(size: size)
         
@@ -24,6 +23,10 @@ class GameOverScene: SKScene {
         notificationLabel.color = SKColor.white
         notificationLabel.fontName = "Thonburi-Bold"
         notificationLabel.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        
+        let sound = SKAction.playSoundFileNamed(PACMAN_DEATH, waitForCompletion: false)
+        playSound(sound: sound)
+
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -37,5 +40,9 @@ class GameOverScene: SKScene {
         
         let reveal = SKTransition.flipHorizontal(withDuration: 0.5)
         view?.presentScene(gameScene, transition: reveal)
+    }
+    func playSound(sound : SKAction)
+    {
+        run(sound)
     }
 }

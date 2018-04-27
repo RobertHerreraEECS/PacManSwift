@@ -44,10 +44,9 @@ fileprivate let CLYDE_IMAGE = "clyde"
 
 // Sound globals
 fileprivate let PACMAN_CHOMP = "pacman_chomp.wav"
-fileprivate let PACMAN_DEATH = "pacman_death.wav"
-fileprivate let PACMAN_WIN = "pacman_intermission.wav"
-
-
+fileprivate let PACMAN_INTRO = "pacman_beginning.wav"
+let PACMAN_DEATH = "pacman_death.wav"
+let PACMAN_WIN = "pacman_intermission.wav"
 
 class GameScene: SKScene {
     
@@ -106,9 +105,6 @@ class GameScene: SKScene {
         Ghosts.append(clyde)
         Ghosts.append(blinky)
         
-        
-        // add sprites to grid
-        grid?.addChild(PacMan)
         for (i,g) in Array(Ghosts).enumerated() {
             g.setScale(CGFloat(SCALE_FACTOR))
             g.position = (grid?.gridPosition(row: 14, col: 11 + i))!
@@ -119,10 +115,16 @@ class GameScene: SKScene {
     }
     
     override func sceneDidLoad() {
-        // intialize ghost search schedule
-        searchSchedule()
-        // show usage
-        usage()
+        // intro
+        let sound = SKAction.playSoundFileNamed(PACMAN_INTRO, waitForCompletion: true)
+        self.run(sound, completion: {() -> Void in
+            // add sprites to grid
+            self.grid?.addChild(self.PacMan)
+            // show usage
+            self.usage()
+            // start looking for pacman
+            self.searchSchedule()
+        })
     }
 
     
@@ -149,7 +151,7 @@ class GameScene: SKScene {
             self.cancelMovement()
         } else if direction == UP && gridFile[(currentPosition?.0)! - 1][(currentPosition?.1)!] == "0"{
             self.cancelMovement()
-        } else if direction == DOWN && gridFile[(currentPosition?.0)! + 1][(currentPosition?.1)!] == "0"{
+        } else if direction == DOWN && (gridFile[(currentPosition?.0)! + 1][(currentPosition?.1)!] == "0"){
             self.cancelMovement()
         }
         
@@ -164,7 +166,7 @@ class GameScene: SKScene {
     
     func checkWin() {
         if Pellets.count == 0 {
-            let sound = SKAction.playSoundFileNamed(PACMAN_WIN, waitForCompletion: false)
+            let sound = SKAction.playSoundFileNamed(PACMAN_WIN, waitForCompletion: true)
             playSound(sound: sound)
             restart(msg:"win")
         }
@@ -173,10 +175,10 @@ class GameScene: SKScene {
     func checkLoss() {
         for g in Ghosts {
             if g.position == PacMan.position {
-                let sound = SKAction.playSoundFileNamed(PACMAN_DEATH, waitForCompletion: false)
-                playSound(sound: sound)
+                self.grid?.isPaused = true
+                //self.scene?.view?.isPaused = true
                 restart(msg:"loss")
-                
+                break
             }
         }
     }
@@ -212,7 +214,7 @@ class GameScene: SKScene {
                     if let child = self.grid?.childNode(withName: "pellet_\(currentPosition!.0)_\(currentPosition!.1)") as? SKSpriteNode {
                         child.removeFromParent()
                         Pellets.remove(at: index)
-                        let sound = SKAction.playSoundFileNamed(PACMAN_CHOMP, waitForCompletion: false)
+                        let sound = SKAction.playSoundFileNamed(PACMAN_CHOMP, waitForCompletion: true)
                         playSound(sound: sound)
                     }
                 }
@@ -307,7 +309,14 @@ class GameScene: SKScene {
                 grid?.addChild(gameTile)
             } else if object.NodeData == "+" {
                 let pellet = SKSpriteNode(imageNamed: PELLET_IMAGE)
-                pellet.setScale(CGFloat(SCALE_FACTOR * 0.70))
+                pellet.setScale(CGFloat(SCALE_FACTOR * 0.40))
+                pellet.position = (grid?.gridPosition(row: object.coordinate.0, col: object.coordinate.1))!
+                pellet.name = "pellet_\(object.coordinate.0)_\(object.coordinate.1)"
+                Pellets.append(object.coordinate)
+                grid?.addChild(pellet)
+            } else if object.NodeData == "p" {
+                let pellet = SKSpriteNode(imageNamed: PELLET_IMAGE)
+                pellet.setScale(CGFloat(SCALE_FACTOR))
                 pellet.position = (grid?.gridPosition(row: object.coordinate.0, col: object.coordinate.1))!
                 pellet.name = "pellet_\(object.coordinate.0)_\(object.coordinate.1)"
                 Pellets.append(object.coordinate)
@@ -344,7 +353,6 @@ class GameScene: SKScene {
     
     @objc func swipedRight(_ sender:UISwipeGestureRecognizer){
         let currentPosition = grid?.sendPosition(position: PacMan.position)
-        self.checkLoss()
         if (direction == UP || direction == DOWN || direction == IDLE) && gridFile[(currentPosition?.0)!][(currentPosition?.1)! + 1] != "0" {
             let moveRight = SKAction.moveBy(x: CGFloat(VELOCITY), y: 0, duration: TimeInterval(MOVEMENT_DURATION))
             direction = RIGHT
@@ -356,12 +364,10 @@ class GameScene: SKScene {
             PacMan.removeAllActions()
             PacMan.run(SKAction.repeatForever(moveRight))
         }
-        
     }
     
     @objc func swipedLeft(_ sender:UISwipeGestureRecognizer){
         let currentPosition = grid?.sendPosition(position: PacMan.position)
-        self.checkLoss()
         if (direction == UP || direction == DOWN || direction == IDLE) && gridFile[(currentPosition?.0)!][(currentPosition?.1)! - 1] != "0" {
             let moveLeft = SKAction.moveBy(x: -(CGFloat)(VELOCITY), y: 0, duration: TimeInterval(MOVEMENT_DURATION))
             direction = LEFT
@@ -376,7 +382,6 @@ class GameScene: SKScene {
     }
     
     @objc func swipedUp(_ sender:UISwipeGestureRecognizer){
-        self.checkLoss()
         let currentPosition = grid?.sendPosition(position: PacMan.position)
         if (direction == RIGHT || direction == LEFT || direction == IDLE) && gridFile[(currentPosition?.0)! - 1][(currentPosition?.1)!] != "0" {
             direction = UP
@@ -394,11 +399,14 @@ class GameScene: SKScene {
     @objc func swipedDown(_ sender:UISwipeGestureRecognizer){
         let currentPosition = grid?.sendPosition(position: PacMan.position)
         self.checkLoss()
-        if (direction == RIGHT || direction == LEFT || direction == IDLE) && gridFile[(currentPosition?.0)! + 1][(currentPosition?.1)!] != "0" {
-            direction = DOWN
-            let moveDown = SKAction.moveBy(x: 0, y: -(CGFloat)(VELOCITY), duration: TimeInterval(MOVEMENT_DURATION))
-            PacMan.removeAllActions()
-            PacMan.run(SKAction.repeatForever(moveDown))
+        
+         if (direction == RIGHT || direction == LEFT || direction == IDLE) && gridFile[(currentPosition?.0)! + 1][(currentPosition?.1)!] != "0"  {
+            if gridFile[(currentPosition?.0)! + 1][(currentPosition?.1)!] != "#" {
+                direction = DOWN
+                let moveDown = SKAction.moveBy(x: 0, y: -(CGFloat)(VELOCITY), duration: TimeInterval(MOVEMENT_DURATION))
+                PacMan.removeAllActions()
+                PacMan.run(SKAction.repeatForever(moveDown))
+            }
         } else if direction == UP {
             direction = DOWN
             let moveDown = SKAction.moveBy(x: 0, y: -(CGFloat)(VELOCITY), duration: TimeInterval(MOVEMENT_DURATION))
@@ -409,3 +417,4 @@ class GameScene: SKScene {
     }
 
 }
+
