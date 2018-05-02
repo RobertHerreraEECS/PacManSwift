@@ -45,10 +45,12 @@ class MapManager {
                             gridFile[posY][posX] = conversion
                             let tempTup = (posY,posX)
                             ObjectArray.append(GridNode(coordinate: tempTup, NodeData: conversion,parentCoordinate: (0,0)))
-                            
                         } else {
                             let posX = Int(position.x)
                             let posY = Int(position.y)
+                            if letter == "+" || letter == "-" || letter == "|" {
+                                openCoordinates.append((posY,posX))
+                            }
                             let conversion = String(letter)
                             gridFile[posY][posX] = conversion
                             let tempTup = (posY,posX)
@@ -66,6 +68,11 @@ class MapManager {
     
     class func getMapSize() -> (Int, Int){
         return mapSize
+    }
+    
+    class func getOpenCoodinate() -> (Int,Int) {
+        let randIndex = Int(arc4random_uniform(UInt32(openCoordinates.count)))
+        return openCoordinates[randIndex]
     }
     
     

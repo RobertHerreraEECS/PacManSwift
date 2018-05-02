@@ -47,6 +47,7 @@ fileprivate let INKY_IMAGE = "inky"
 fileprivate let PINKY_IMAGE = "pinky"
 fileprivate let BLINKY_IMAGE = "blinky"
 fileprivate let CLYDE_IMAGE = "clyde"
+fileprivate let SCATTER_IMAGE = "ghost"
 
 // Sound globals
 fileprivate let PACMAN_CHOMP = "pacman_chomp.wav"
@@ -66,6 +67,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private let  grid = Grid(blockSize: 15.0, rows:29, cols:28)
     var direction: Int = IDLE
     var totalSeconds:Int = 0
+    var isInPowerMode: Bool = false
 
     // game characters
     let PacMan = SKSpriteNode(imageNamed: PACMAN_IMAGE)
@@ -170,6 +172,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         } else if (currentPosition?.0)! == 13 && (currentPosition?.1)! == 1 {
             PacMan.position = (grid?.gridPosition(row: 13, col: 26))!
         }
+        
+        for g in self.Ghosts {
+            // check for coordinate wrapping
+            let currentPosition = grid?.sendPosition(position: g.position)
+            if (currentPosition?.0)! == 13 && (currentPosition?.1)! == 27 {
+                g.position = (grid?.gridPosition(row: 13, col: 2))!
+            } else if (currentPosition?.0)! == 13 && (currentPosition?.1)! == 1 {
+                g.position = (grid?.gridPosition(row: 13, col: 26))!
+            }
+        }
     }
     
     
@@ -223,13 +235,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                         if gridFile[(currentPosition?.0)!][(currentPosition?.1)!] == "p" {
                             let sound = SKAction.playSoundFileNamed(PACMAN_POWER, waitForCompletion: true)
                             playSound(sound: sound)
-                            
                             // trigger blue ghosts and scatter
                             for g in Ghosts {
-                                g.texture = SKTexture(imageNamed: "ghost")
+                                g.texture = SKTexture(imageNamed: SCATTER_IMAGE)
                                 self.removeAction(forKey: "search_mode")
                                 g.removeAllActions()
                             }
+                            self.totalSeconds = 0
+                            self.isInPowerMode = true
+                            self.scatterSchedule()
                             
                         } else {
                             let sound = SKAction.playSoundFileNamed(PACMAN_CHOMP, waitForCompletion: true)
@@ -249,7 +263,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         PacMan.physicsBody = SKPhysicsBody(texture: PacMan.texture!, size: pacSize)
         PacMan.physicsBody!.categoryBitMask = pacManCategory
         PacMan.physicsBody!.contactTestBitMask = PacMan.physicsBody!.collisionBitMask
-        PacMan.physicsBody?.isDynamic = true
+        PacMan.physicsBody?.isDynamic = false
         PacMan.physicsBody?.affectedByGravity = false
         PacMan.physicsBody?.allowsRotation = false
         
@@ -261,6 +275,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             g.physicsBody?.isDynamic = true
             g.physicsBody?.affectedByGravity = false
             g.physicsBody?.allowsRotation = false
+            //g.physicsBody?.
         }
 
         
@@ -284,7 +299,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 // reset timer
                 self.totalSeconds = 0
             }
-            
             self.searchSchedule()
         }
         
@@ -292,11 +306,56 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.run(seq, withKey: "search_mode")
     }
     
+    
+    func scatterSchedule() {
+        // Search for pacman every few seconds
+        let wait:SKAction = SKAction.wait(forDuration: 1)
+        let finishTimer:SKAction = SKAction.run {
+            self.totalSeconds += 1
+            if self.totalSeconds == 1 {
+                self.knownSearch(ghost: self.inky, target: MapManager.getOpenCoodinate())
+                self.knownSearch(ghost: self.pinky, target: MapManager.getOpenCoodinate())
+                self.knownSearch(ghost: self.blinky, target: MapManager.getOpenCoodinate())
+                self.knownSearch(ghost: self.clyde, target: MapManager.getOpenCoodinate())
+            } else if self.totalSeconds == 10{
+                // reset timer
+                self.totalSeconds = 0
+                self.removeAction(forKey: "scatter_mode")
+                for g in self.Ghosts {
+                    g.removeAllActions()
+                    g.texture = SKTexture(imageNamed: g.name!)
+                }
+                self.searchSchedule()
+                self.isInPowerMode = false
+            }
+            
+            self.scatterSchedule()
+        }
+        
+        let seq:SKAction = SKAction.sequence([wait, finishTimer])
+        self.run(seq, withKey: "scatter_mode")
+    }
+    
+    
     func search(ghost: SKSpriteNode, target: SKSpriteNode) {
         let currentPosition = self.grid?.sendPosition(position: ghost.position)
         let enemyPosition = self.grid?.sendPosition(position: target.position)
         
         let path = BreadthFirstSearch.BFS(currentPosition!, pacman: enemyPosition!)
+        if path.count > 0 {
+            let Path = UIBezierPath()
+            Path.move(to: (self.grid?.gridPosition(row: (currentPosition?.0)!, col: (currentPosition?.1)!))!)
+            for coordinate in path {
+                Path.addLine(to: (self.grid?.gridPosition(row: coordinate.0, col: coordinate.1))!)
+            }
+            let move = SKAction.follow(Path.cgPath, asOffset: false, orientToPath: false, speed: CGFloat(GHOST_SPEED))
+            ghost.run(move)
+        }
+    }
+    
+    func knownSearch(ghost: SKSpriteNode, target: (Int,Int)) {
+        let currentPosition = self.grid?.sendPosition(position: ghost.position)
+        let path = BreadthFirstSearch.BFS(currentPosition!, pacman: target)
         if path.count > 0 {
             let Path = UIBezierPath()
             Path.move(to: (self.grid?.gridPosition(row: (currentPosition?.0)!, col: (currentPosition?.1)!))!)
@@ -469,12 +528,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         {
             firstBody = contact.bodyB
             secondBody = contact.bodyA
-            self.triggerLoss()
         }
         
         if ((firstBody.categoryBitMask & pacManCategory) != 0 && (secondBody.categoryBitMask & GhostCategory) != 0)
         {
-            self.triggerLoss()
+            if !self.isInPowerMode {
+                self.triggerLoss()
+            }
         }
     }
     

@@ -19,5 +19,8 @@ struct GridNode {
 var ObjectArray: [GridNode] = [GridNode]()
 
 // Simple 2D array containing map info
-var gridFile = [[String]]()
+var gridFile: [[String]] = [[String]]()
+
+// Simple 2D array containing map info
+var openCoordinates: [(Int,Int)] = [(Int,Int)]()
 
