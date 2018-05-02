@@ -9,13 +9,19 @@
 
 /*
  * BUGS:
- * - unable to detect ghost/pacman collision when move skaction taking place
  * - pacman movement somtimes negates tile detection and will "phase" throught the wall.
+ * FIXED:
+ * - unable to detect ghost/pacman collision when move skaction taking place
  * - Loss/Win sounds sometimes dont play
+ * DONE:
+ * - added collision for "pink" layer of map for pacman
+ * - added Power pellets
+ * - added "power mode" logic
  * TODO:
- * - need to add collision for "pink" layer of map for pacman
- * - Power pellets
- * - "power mode" logic - blue ghosts, logic, ghost scatter mode
+ * - added blue ghosts, logic, ghost scatter mode
+ * - Ghost wrapping
+ * - seperate sprites by classes
+ * - heuristic variable A*
  */
 
 import SpriteKit
@@ -44,18 +50,22 @@ fileprivate let CLYDE_IMAGE = "clyde"
 
 // Sound globals
 fileprivate let PACMAN_CHOMP = "pacman_chomp.wav"
+fileprivate let PACMAN_POWER = "pacman_eatfruit.wav"
+fileprivate let PACMAN_CHOMP_GHOST = "pacman_eatghost.wav"
 fileprivate let PACMAN_INTRO = "pacman_beginning.wav"
 let PACMAN_DEATH = "pacman_death.wav"
 let PACMAN_WIN = "pacman_intermission.wav"
 
-class GameScene: SKScene {
-    
+//init your categoryBitMask :
+let pacManCategory:UInt32 = 0x1 << 0
+let GhostCategory:UInt32 = 0x1 << 1
+
+class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var gameOver: Bool = false
     private let  grid = Grid(blockSize: 15.0, rows:29, cols:28)
     var direction: Int = IDLE
     var totalSeconds:Int = 0
-    
 
     // game characters
     let PacMan = SKSpriteNode(imageNamed: PACMAN_IMAGE)
@@ -66,10 +76,8 @@ class GameScene: SKScene {
     
     // list of pellet loctations
     private var Pellets: [(Int,Int)] = []
-    
     // ghost list for easy access
     private var Ghosts: [SKSpriteNode] = [SKSpriteNode]()
-    
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
@@ -80,10 +88,11 @@ class GameScene: SKScene {
         self.isUserInteractionEnabled = true
     }
     
-    
     deinit{}
 
     override func didMove(to view: SKView) {
+        
+        physicsWorld.contactDelegate = self
         
         MapManager.generateMapFromText(file: "map")
         initializeSwipeDirections()
@@ -105,13 +114,14 @@ class GameScene: SKScene {
         Ghosts.append(clyde)
         Ghosts.append(blinky)
         
+        self.initPhysics()
+        view.showsPhysics = true
+        
         for (i,g) in Array(Ghosts).enumerated() {
             g.setScale(CGFloat(SCALE_FACTOR))
             g.position = (grid?.gridPosition(row: 14, col: 11 + i))!
             grid?.addChild(g)
         }
-
- 
     }
     
     override func sceneDidLoad() {
@@ -130,12 +140,12 @@ class GameScene: SKScene {
     
     override func update(_ currentTime: TimeInterval) {
         if self.gameOver == false {
+            // check if ghosts touched pacman
+            //print("pac pos: \(self.PacMan.position) ghost pos: \(self.inky.position)")
             // update pellet count
             self.checkForPellet()
             // check if pac-man has eaten all pellets
             self.checkWin()
-            // check if ghosts touched pacman
-            self.checkLoss()
         }
     }
     
@@ -143,7 +153,6 @@ class GameScene: SKScene {
 
     override func didFinishUpdate() {
         let currentPosition = grid?.sendPosition(position: PacMan.position)
-        self.checkLoss()
         // check for legal moves
         if direction == RIGHT && gridFile[(currentPosition?.0)!][(currentPosition?.1)! + 1] == "0"{
             self.cancelMovement()
@@ -154,7 +163,7 @@ class GameScene: SKScene {
         } else if direction == DOWN && (gridFile[(currentPosition?.0)! + 1][(currentPosition?.1)!] == "0"){
             self.cancelMovement()
         }
-        
+
         // check for coordinate wrapping
         if (currentPosition?.0)! == 13 && (currentPosition?.1)! == 27 {
             PacMan.position = (grid?.gridPosition(row: 13, col: 2))!
@@ -172,15 +181,10 @@ class GameScene: SKScene {
         }
     }
     
-    func checkLoss() {
-        for g in Ghosts {
-            if g.position == PacMan.position {
-                self.grid?.isPaused = true
-                //self.scene?.view?.isPaused = true
-                restart(msg:"loss")
-                break
-            }
-        }
+    func triggerLoss() {
+        self.grid?.isPaused = true
+        //self.scene?.view?.isPaused = true
+        restart(msg:"loss")
     }
     
     func restart(msg: String) {
@@ -214,13 +218,52 @@ class GameScene: SKScene {
                     if let child = self.grid?.childNode(withName: "pellet_\(currentPosition!.0)_\(currentPosition!.1)") as? SKSpriteNode {
                         child.removeFromParent()
                         Pellets.remove(at: index)
-                        let sound = SKAction.playSoundFileNamed(PACMAN_CHOMP, waitForCompletion: true)
-                        playSound(sound: sound)
+                        
+                        // check for Power pellet
+                        if gridFile[(currentPosition?.0)!][(currentPosition?.1)!] == "p" {
+                            let sound = SKAction.playSoundFileNamed(PACMAN_POWER, waitForCompletion: true)
+                            playSound(sound: sound)
+                            
+                            // trigger blue ghosts and scatter
+                            for g in Ghosts {
+                                g.texture = SKTexture(imageNamed: "ghost")
+                                self.removeAction(forKey: "search_mode")
+                                g.removeAllActions()
+                            }
+                            
+                        } else {
+                            let sound = SKAction.playSoundFileNamed(PACMAN_CHOMP, waitForCompletion: true)
+                            playSound(sound: sound)
+                        }
+                        
+                        
                     }
                 }
                 break
             }
         }
+    }
+    
+    func initPhysics() {
+        let pacSize = CGSize(width: (PacMan.texture?.size().width)! * CGFloat(SCALE_FACTOR * 0.2), height: (PacMan.texture?.size().height)! * CGFloat(SCALE_FACTOR * 0.2))
+        PacMan.physicsBody = SKPhysicsBody(texture: PacMan.texture!, size: pacSize)
+        PacMan.physicsBody!.categoryBitMask = pacManCategory
+        PacMan.physicsBody!.contactTestBitMask = PacMan.physicsBody!.collisionBitMask
+        PacMan.physicsBody?.isDynamic = true
+        PacMan.physicsBody?.affectedByGravity = false
+        PacMan.physicsBody?.allowsRotation = false
+        
+        for g in self.Ghosts {
+            let size = CGSize(width: (g.texture?.size().width)! * CGFloat(SCALE_FACTOR), height: (g.texture?.size().height)! * CGFloat(SCALE_FACTOR))
+            g.physicsBody = SKPhysicsBody(texture: g.texture!, size: size)
+            g.physicsBody!.categoryBitMask = GhostCategory
+            g.physicsBody!.contactTestBitMask = g.physicsBody!.collisionBitMask
+            g.physicsBody?.isDynamic = true
+            g.physicsBody?.affectedByGravity = false
+            g.physicsBody?.allowsRotation = false
+        }
+
+        
     }
     
     func searchSchedule(){
@@ -246,7 +289,7 @@ class GameScene: SKScene {
         }
         
         let seq:SKAction = SKAction.sequence([wait, finishTimer])
-        self.run(seq)
+        self.run(seq, withKey: "search_mode")
     }
     
     func search(ghost: SKSpriteNode, target: SKSpriteNode) {
@@ -265,14 +308,11 @@ class GameScene: SKScene {
         }
     }
     
-    
-    
     // MARK: Game Initialization and Movement
     func playSound(sound : SKAction)
     {
         run(sound)
     }
-    
     
     func usage() {
         // SKLabelNode
@@ -398,7 +438,6 @@ class GameScene: SKScene {
     
     @objc func swipedDown(_ sender:UISwipeGestureRecognizer){
         let currentPosition = grid?.sendPosition(position: PacMan.position)
-        self.checkLoss()
         
          if (direction == RIGHT || direction == LEFT || direction == IDLE) && gridFile[(currentPosition?.0)! + 1][(currentPosition?.1)!] != "0"  {
             if gridFile[(currentPosition?.0)! + 1][(currentPosition?.1)!] != "#" {
@@ -415,6 +454,31 @@ class GameScene: SKScene {
         }
         
     }
+    
+    
+    func didBegin(_ contact: SKPhysicsContact) {
+        var firstBody: SKPhysicsBody
+        var secondBody: SKPhysicsBody
+
+        if (contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask)
+        {
+            firstBody = contact.bodyA
+            secondBody = contact.bodyB
+        }
+        else
+        {
+            firstBody = contact.bodyB
+            secondBody = contact.bodyA
+            self.triggerLoss()
+        }
+        
+        if ((firstBody.categoryBitMask & pacManCategory) != 0 && (secondBody.categoryBitMask & GhostCategory) != 0)
+        {
+            self.triggerLoss()
+        }
+    }
+    
+    
 
 }
 
