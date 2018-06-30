@@ -10,18 +10,11 @@
 /*
  * BUGS:
  * - pacman movement somtimes negates tile detection and will "phase" throught the wall.
- * FIXED:
- * - unable to detect ghost/pacman collision when move skaction taking place
- * - Loss/Win sounds sometimes dont play
- * DONE:
- * - added collision for "pink" layer of map for pacman
- * - added Power pellets
- * - added "power mode" logic
  * TODO:
- * - added blue ghosts, logic, ghost scatter mode
- * - Ghost wrapping
  * - seperate sprites by classes
- * - heuristic variable A*
+ * - sectorize ghosts when scattering
+ * - config file to controll all settings
+ * - cached movement
  */
 
 import SpriteKit
@@ -38,6 +31,11 @@ fileprivate let LEFT = 1
 fileprivate let RIGHT = 0
 fileprivate let IDLE = -1
 
+let WALL = "0"
+let GHOST_BARRIER = "#"
+let PELLET = "+"
+let POWER_PELLET = "p"
+
 // Image globals
 fileprivate let GAME_TILE_IMAGE = "blue"
 fileprivate let GHOST_TILE_IMAGE = "pink"
@@ -48,6 +46,7 @@ fileprivate let PINKY_IMAGE = "pinky"
 fileprivate let BLINKY_IMAGE = "blinky"
 fileprivate let CLYDE_IMAGE = "clyde"
 fileprivate let SCATTER_IMAGE = "ghost"
+fileprivate let RETURN_HOME_IMAGE = "eyes"
 
 // Sound globals
 fileprivate let PACMAN_CHOMP = "pacman_chomp.wav"
@@ -67,6 +66,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private let  grid = Grid(blockSize: 15.0, rows:29, cols:28)
     var direction: Int = IDLE
     var totalSeconds:Int = 0
+    var ghostTotalSeconds:Int = 0
     var isInPowerMode: Bool = false
 
     // game characters
@@ -100,9 +100,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         initializeSwipeDirections()
         grid?.position = CGPoint (x:frame.midX, y:frame.midY)
         addChild(grid!)
+        
         // add tiles and pellets
         self.populateGrid()
-
+        
+        // PacMan params
         PacMan.setScale(CGFloat(SCALE_FACTOR * 0.20))
         PacMan.position = (grid?.gridPosition(row: 16, col: 13))!
  
@@ -116,9 +118,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         Ghosts.append(clyde)
         Ghosts.append(blinky)
         
+        // set sprite physics for collision detection
         self.initPhysics()
         view.showsPhysics = true
         
+        // set ghosts params
         for (i,g) in Array(Ghosts).enumerated() {
             g.setScale(CGFloat(SCALE_FACTOR))
             g.position = (grid?.gridPosition(row: 14, col: 11 + i))!
@@ -142,8 +146,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     override func update(_ currentTime: TimeInterval) {
         if self.gameOver == false {
-            // check if ghosts touched pacman
-            //print("pac pos: \(self.PacMan.position) ghost pos: \(self.inky.position)")
             // update pellet count
             self.checkForPellet()
             // check if pac-man has eaten all pellets
@@ -152,17 +154,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     // MARK: Game Logic
-
     override func didFinishUpdate() {
         let currentPosition = grid?.sendPosition(position: PacMan.position)
         // check for legal moves
-        if direction == RIGHT && gridFile[(currentPosition?.0)!][(currentPosition?.1)! + 1] == "0"{
+        if direction == RIGHT && gridFile[(currentPosition?.0)!][(currentPosition?.1)! + 1] == WALL{
             self.cancelMovement()
-        } else if direction == LEFT && gridFile[(currentPosition?.0)!][(currentPosition?.1)! - 1] == "0"{
+        } else if direction == LEFT && gridFile[(currentPosition?.0)!][(currentPosition?.1)! - 1] == WALL{
             self.cancelMovement()
-        } else if direction == UP && gridFile[(currentPosition?.0)! - 1][(currentPosition?.1)!] == "0"{
+        } else if direction == UP && gridFile[(currentPosition?.0)! - 1][(currentPosition?.1)!] == WALL{
             self.cancelMovement()
-        } else if direction == DOWN && (gridFile[(currentPosition?.0)! + 1][(currentPosition?.1)!] == "0"){
+        } else if direction == DOWN && (gridFile[(currentPosition?.0)! + 1][(currentPosition?.1)!] == WALL){
+            self.cancelMovement()
+        }
+        
+        if direction == RIGHT && gridFile[(currentPosition?.0)!][(currentPosition?.1)! + 1] == GHOST_BARRIER{
+            self.cancelMovement()
+        } else if direction == LEFT && gridFile[(currentPosition?.0)!][(currentPosition?.1)! - 1] == GHOST_BARRIER{
+            self.cancelMovement()
+        } else if direction == UP && gridFile[(currentPosition?.0)! - 1][(currentPosition?.1)!] == GHOST_BARRIER{
+            self.cancelMovement()
+        } else if direction == DOWN && (gridFile[(currentPosition?.0)! + 1][(currentPosition?.1)!] == GHOST_BARRIER){
             self.cancelMovement()
         }
 
@@ -249,8 +260,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                             let sound = SKAction.playSoundFileNamed(PACMAN_CHOMP, waitForCompletion: true)
                             playSound(sound: sound)
                         }
-                        
-                        
                     }
                 }
                 break
@@ -275,33 +284,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             g.physicsBody?.isDynamic = true
             g.physicsBody?.affectedByGravity = false
             g.physicsBody?.allowsRotation = false
-            //g.physicsBody?.
         }
-
-        
     }
     
     func searchSchedule(){
         // Search for pacman every few seconds
         let wait:SKAction = SKAction.wait(forDuration: 0)
         let finishTimer:SKAction = SKAction.run {
-            
             self.totalSeconds += 1
-            if self.totalSeconds == 2 {
-                self.search(ghost: self.inky, target: self.PacMan)
-            } else if self.totalSeconds == 3 {
-                self.search(ghost: self.pinky, target: self.PacMan)
-            } else if self.totalSeconds == 5 {
-                self.search(ghost: self.blinky, target: self.PacMan)
-            } else if self.totalSeconds == 6 {
-                self.search(ghost: self.clyde, target: self.PacMan)
+            if self.totalSeconds == 4 {
+                for ghost in self.Ghosts { self.search(ghost: ghost, target: self.PacMan) }
             } else if self.totalSeconds == 10{
                 // reset timer
                 self.totalSeconds = 0
             }
             self.searchSchedule()
         }
-        
         let seq:SKAction = SKAction.sequence([wait, finishTimer])
         self.run(seq, withKey: "search_mode")
     }
@@ -313,22 +311,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let finishTimer:SKAction = SKAction.run {
             self.totalSeconds += 1
             if self.totalSeconds == 1 {
-                self.knownSearch(ghost: self.inky, target: MapManager.getOpenCoodinate())
-                self.knownSearch(ghost: self.pinky, target: MapManager.getOpenCoodinate())
-                self.knownSearch(ghost: self.blinky, target: MapManager.getOpenCoodinate())
-                self.knownSearch(ghost: self.clyde, target: MapManager.getOpenCoodinate())
+                // check to see if pacman has eaten ghost first
+                for ghost in self.Ghosts {
+                    if ghost.texture?.name != RETURN_HOME_IMAGE { self.knownSearch(ghost: ghost, target: MapManager.getOpenCoodinate()) }
+                }
             } else if self.totalSeconds == 10{
                 // reset timer
                 self.totalSeconds = 0
                 self.removeAction(forKey: "scatter_mode")
                 for g in self.Ghosts {
-                    g.removeAllActions()
-                    g.texture = SKTexture(imageNamed: g.name!)
+                    // check to see if pacman has eaten ghost first
+                    if g.texture?.name != RETURN_HOME_IMAGE {
+                        g.removeAllActions()
+                        g.texture = SKTexture(imageNamed: g.name!)
+                    }
                 }
                 self.searchSchedule()
                 self.isInPowerMode = false
             }
-            
             self.scatterSchedule()
         }
         
@@ -336,12 +336,29 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.run(seq, withKey: "scatter_mode")
     }
     
+    func returnHome(ghost: SKSpriteNode, target: (Int, Int)){
+        // Search for pacman every few seconds
+        let wait:SKAction = SKAction.wait(forDuration: 0)
+        
+        let currentPosition = self.grid?.sendPosition(position: ghost.position)
+        let path = PathFinder(from:currentPosition!, to: target).search()
+        if path.count > 0 {
+            let Path = UIBezierPath()
+            Path.move(to: (self.grid?.gridPosition(row: (currentPosition?.0)!, col: (currentPosition?.1)!))!)
+            for coordinate in path {
+                Path.addLine(to: (self.grid?.gridPosition(row: coordinate.0, col: coordinate.1))!)
+            }
+            let move = SKAction.follow(Path.cgPath, asOffset: false, orientToPath: false, speed: CGFloat(GHOST_SPEED))
+            let seq:SKAction = SKAction.sequence([move,wait])
+            ghost.run(seq, withKey: "return_mode")
+        }
+    }
     
     func search(ghost: SKSpriteNode, target: SKSpriteNode) {
         let currentPosition = self.grid?.sendPosition(position: ghost.position)
         let enemyPosition = self.grid?.sendPosition(position: target.position)
-        
-        let path = BreadthFirstSearch.BFS(currentPosition!, pacman: enemyPosition!)
+        let path = PathFinder(from: currentPosition!, to: enemyPosition!).search()
+
         if path.count > 0 {
             let Path = UIBezierPath()
             Path.move(to: (self.grid?.gridPosition(row: (currentPosition?.0)!, col: (currentPosition?.1)!))!)
@@ -355,7 +372,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func knownSearch(ghost: SKSpriteNode, target: (Int,Int)) {
         let currentPosition = self.grid?.sendPosition(position: ghost.position)
-        let path = BreadthFirstSearch.BFS(currentPosition!, pacman: target)
+        let path = PathFinder(from: currentPosition!, to: target).search()
+        print(path)
         if path.count > 0 {
             let Path = UIBezierPath()
             Path.move(to: (self.grid?.gridPosition(row: (currentPosition?.0)!, col: (currentPosition?.1)!))!)
@@ -396,24 +414,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func populateGrid() {
 
         for object in ObjectArray {
-            if object.NodeData == "0" {
+            if object.NodeData == WALL {
                 let gameTile = SKSpriteNode(imageNamed: GAME_TILE_IMAGE)
                 gameTile.setScale(CGFloat(SCALE_FACTOR))
                 gameTile.position = (grid?.gridPosition(row: object.coordinate.0, col: object.coordinate.1))!
                 grid?.addChild(gameTile)
-            } else if object.NodeData == "#" {
+            } else if object.NodeData == GHOST_BARRIER {
                 let gameTile = SKSpriteNode(imageNamed: GHOST_TILE_IMAGE)
                 gameTile.setScale(CGFloat(SCALE_FACTOR))
                 gameTile.position = (grid?.gridPosition(row: object.coordinate.0, col: object.coordinate.1))!
                 grid?.addChild(gameTile)
-            } else if object.NodeData == "+" {
+            } else if object.NodeData == PELLET {
                 let pellet = SKSpriteNode(imageNamed: PELLET_IMAGE)
                 pellet.setScale(CGFloat(SCALE_FACTOR * 0.40))
                 pellet.position = (grid?.gridPosition(row: object.coordinate.0, col: object.coordinate.1))!
                 pellet.name = "pellet_\(object.coordinate.0)_\(object.coordinate.1)"
                 Pellets.append(object.coordinate)
                 grid?.addChild(pellet)
-            } else if object.NodeData == "p" {
+            } else if object.NodeData == POWER_PELLET {
                 let pellet = SKSpriteNode(imageNamed: PELLET_IMAGE)
                 pellet.setScale(CGFloat(SCALE_FACTOR))
                 pellet.position = (grid?.gridPosition(row: object.coordinate.0, col: object.coordinate.1))!
@@ -467,7 +485,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     @objc func swipedLeft(_ sender:UISwipeGestureRecognizer){
         let currentPosition = grid?.sendPosition(position: PacMan.position)
-        if (direction == UP || direction == DOWN || direction == IDLE) && gridFile[(currentPosition?.0)!][(currentPosition?.1)! - 1] != "0" {
+        if (direction == UP || direction == DOWN || direction == IDLE) && gridFile[(currentPosition?.0)!][(currentPosition?.1)! - 1] != WALL {
             let moveLeft = SKAction.moveBy(x: -(CGFloat)(VELOCITY), y: 0, duration: TimeInterval(MOVEMENT_DURATION))
             direction = LEFT
             PacMan.removeAllActions()
@@ -482,7 +500,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     @objc func swipedUp(_ sender:UISwipeGestureRecognizer){
         let currentPosition = grid?.sendPosition(position: PacMan.position)
-        if (direction == RIGHT || direction == LEFT || direction == IDLE) && gridFile[(currentPosition?.0)! - 1][(currentPosition?.1)!] != "0" {
+        if (direction == RIGHT || direction == LEFT || direction == IDLE) && gridFile[(currentPosition?.0)! - 1][(currentPosition?.1)!] != WALL {
             direction = UP
             let moveUp = SKAction.moveBy(x: 0, y: CGFloat(VELOCITY), duration: TimeInterval(MOVEMENT_DURATION))
             PacMan.removeAllActions()
@@ -498,8 +516,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     @objc func swipedDown(_ sender:UISwipeGestureRecognizer){
         let currentPosition = grid?.sendPosition(position: PacMan.position)
         
-         if (direction == RIGHT || direction == LEFT || direction == IDLE) && gridFile[(currentPosition?.0)! + 1][(currentPosition?.1)!] != "0"  {
-            if gridFile[(currentPosition?.0)! + 1][(currentPosition?.1)!] != "#" {
+         if (direction == RIGHT || direction == LEFT || direction == IDLE) && gridFile[(currentPosition?.0)! + 1][(currentPosition?.1)!] != WALL  {
+            if gridFile[(currentPosition?.0)! + 1][(currentPosition?.1)!] != GHOST_BARRIER {
                 direction = DOWN
                 let moveDown = SKAction.moveBy(x: 0, y: -(CGFloat)(VELOCITY), duration: TimeInterval(MOVEMENT_DURATION))
                 PacMan.removeAllActions()
@@ -534,11 +552,25 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         {
             if !self.isInPowerMode {
                 self.triggerLoss()
+            } else {
+                for g in self.Ghosts {
+                    if g.name == secondBody.node?.name {
+                        g.texture = SKTexture(imageNamed: RETURN_HOME_IMAGE)
+                        g.removeAllActions()
+                        self.knownSearch(ghost: g, target: (14,12))
+                        break
+                    }
+                }
             }
         }
     }
     
-    
+}
 
+extension SKTexture {
+    var name:String? {
+        let comps = description.components(separatedBy: "'")
+        return comps.count > 1 ? comps[1] : nil
+    }
 }
 
